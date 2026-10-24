@@ -35,7 +35,12 @@ export const Board: React.FC<{
         </span>
       </header>
       <div className="board-stage">
-        <svg viewBox="0 0 1000 780" aria-hidden="true" className="board-route">
+        <svg
+          viewBox="0 0 1000 780"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          className="board-route"
+        >
           <defs>
             <linearGradient id="road" x1="0" y1="1" x2="1" y2="0">
               <stop stopColor="#e6c992" />
@@ -258,24 +263,6 @@ export const Board: React.FC<{
           Meta 30
         </span>
       </footer>
-      <div className="player-strip">
-        {players.map((p, i) => (
-          <div key={p.id} className={p.id === activePlayerId ? "self" : ""}>
-            <span className={"player-dot p" + i} />
-            <strong>{p.name}</strong>
-            <span>{p.position}/30</span>
-            <progress
-              value={p.position}
-              max={30}
-              aria-label={`Avance de ${p.name}`}
-            />
-            <small>
-              {p.stats.correctCount} aciertos · {p.stats.totalAnswers}{" "}
-              respuestas
-            </small>
-          </div>
-        ))}
-      </div>
     </section>
   );
 };

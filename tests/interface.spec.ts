@@ -61,6 +61,41 @@ test("carrera local: 30 casillas, respuesta real y ficha en movimiento", async (
     path: "test-results/match-desktop.png",
     fullPage: true,
   });
+  for (const [width, height] of [
+    [1440, 900],
+    [1366, 768],
+    [1920, 1080],
+    [1024, 768],
+  ]) {
+    await page.setViewportSize({ width, height });
+    expect(
+      await page.evaluate(() => document.documentElement.scrollHeight),
+      `La carrera cabe en ${width}x${height}`,
+    ).toBeLessThanOrEqual(height + 1);
+    await expect(
+      page.getByRole("region", { name: "Marcador de la carrera" }),
+    ).toBeInViewport();
+    expect(
+      await page
+        .locator(".adventure-board")
+        .evaluate((e) => e.getBoundingClientRect().bottom),
+    ).toBeLessThanOrEqual(height);
+    expect(
+      await page
+        .locator(".race-scoreboard")
+        .evaluate((e) => e.getBoundingClientRect().top),
+    ).toBeLessThan(
+      await page
+        .locator(".question-card")
+        .evaluate((e) => e.getBoundingClientRect().top),
+    );
+    if (width === 1366)
+      await page.screenshot({
+        path: "test-results/match-laptop.png",
+        fullPage: true,
+      });
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
   const clue = await page.locator(".question-card p").first().innerText();
   const q = questions.find((x: any) => x.clueEn === clue);
   expect(q).toBeTruthy();
