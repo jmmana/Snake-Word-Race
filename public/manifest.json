@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "Snake Word Race",
+  "short_name": "SnakeRace",
+  "description": "Fast-paced English learning snake board race with solo bot practice, speedrun, and real-time multiplayer.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#020617",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

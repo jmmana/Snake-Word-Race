@@ -1,0 +1,1224 @@
+# SNAKE WORD RACE — ESPECIFICACIÓN FUNCIONAL Y TÉCNICA PARA IMPLEMENTACIÓN CON IA
+
+## 1. MISIÓN Y FORMA DE TRABAJO
+
+Actúa como arquitecto de software, desarrollador full stack, diseñador de juegos educativos, especialista en interfaces móviles y responsable de QA.
+
+Tu misión es **implementar un juego funcional llamado Snake Word Race**, orientado al aprendizaje del inglés, con partidas individuales contra un bot y partidas multijugador en tiempo real.
+
+No te limites a proponer una arquitectura, crear un mockup o entregar fragmentos de código. Implementa los flujos completos, conecta frontend y backend, agrega contenido inicial y verifica las reglas mediante pruebas.
+
+Antes de modificar código:
+
+1. Inspecciona el repositorio y sus instrucciones.
+2. Identifica el stack, autenticación, componentes, base de datos y mecanismos de comunicación existentes.
+3. Reutiliza las convenciones del proyecto.
+4. Identifica funcionalidades similares para evitar duplicarlas.
+5. Documenta las decisiones necesarias sin detenerte por elecciones técnicas rutinarias.
+
+Si trabajas dentro de una aplicación existente, integra el juego en sus rutas, navegación, permisos e identidad visual. Si no existe repositorio base, crea una aplicación independiente ejecutable localmente.
+
+No declares una funcionalidad terminada si solo existe su interfaz.
+
+---
+
+## 2. CONCEPTO DEL JUEGO
+
+Snake Word Race combina:
+
+- Una carrera por un tablero serpenteante.
+- Preguntas cortas de vocabulario y gramática.
+- Respuestas simultáneas bajo presión de tiempo.
+- Casillas especiales.
+- Competencia contra otro jugador o contra un bot.
+- Retroalimentación educativa al terminar cada ronda.
+
+### Objetivo
+
+Ser el primer participante en llegar a la casilla 30, comenzando desde la posición 0.
+
+### Público
+
+Estudiantes de inglés de niveles:
+
+`A1`, `A2`, `B1`, `B2`, `C1` y `C2`.
+
+### Plataforma
+
+Web responsive, con prioridad en teléfonos en orientación vertical.
+
+La aplicación debe poder instalarse como PWA y ofrecer práctica local sin conexión cuando el contenido necesario esté descargado.
+
+Las partidas online y los rankings oficiales requieren conexión.
+
+### Principio educativo
+
+La rapidez debe incentivar la recuperación del conocimiento, pero cada error debe generar una oportunidad breve y clara de aprendizaje.
+
+No uses mensajes humillantes ni efectos excesivos que dificulten leer las preguntas.
+
+---
+
+## 3. ALCANCE FUNCIONAL OBLIGATORIO
+
+Implementa:
+
+1. Pantalla de acceso al juego.
+2. Selección de modalidad.
+3. Selección de nivel CEFR.
+4. Configuración de dificultad del bot.
+5. Creación e ingreso a salas privadas.
+6. Emparejamiento público casual y ranked.
+7. Sala de espera.
+8. Tutorial breve.
+9. Tablero interactivo.
+10. Rondas simultáneas.
+11. Validación de respuestas.
+12. Movimiento y casillas especiales.
+13. Duelo.
+14. Reconexión.
+15. Pantalla de resultados.
+16. Revisión educativa de errores.
+17. Estadísticas.
+18. Ranking de speedrun.
+19. Persistencia de partidas.
+20. Pruebas de reglas y flujos principales.
+
+No presentes matchmaking, persistencia o multijugador simulados como si fueran funcionalidades reales.
+
+---
+
+## 4. MODALIDADES
+
+### 4.1. Práctica contra bot
+
+- Un jugador humano y un bot.
+- Selección independiente de nivel CEFR y dificultad del bot.
+- Puede funcionar offline.
+- Permite ayudas configurables.
+- No modifica la clasificación competitiva.
+- Guarda progreso local y lo sincroniza cuando corresponda.
+- Permite pausar únicamente cuando no existe rival humano.
+
+### 4.2. Multijugador casual
+
+- Dos participantes humanos.
+- Respuestas simultáneas.
+- Mismo nivel y mismas reglas para ambos.
+- Sala privada mediante código o emparejamiento público.
+- No altera el rating competitivo.
+- Sí registra estadísticas casuales.
+
+### 4.3. Multijugador ranked
+
+- Dos participantes autenticados.
+- Emparejamiento separado por nivel CEFR.
+- Búsqueda por rating dentro de ese nivel.
+- El rango de rating puede ampliarse gradualmente.
+- Nunca cambies el nivel CEFR sin consentimiento.
+- Sin ayudas que revelen respuestas.
+- Sin adaptación oculta de dificultad.
+- Resultados verificados y persistidos por el servidor.
+
+### 4.4. Speedrun
+
+Modalidad individual independiente para competir por el menor tiempo.
+
+- Tablero de 30 casillas.
+- Sin bot.
+- Sin duelos.
+- Trampas y boosts activos.
+- Sin pistas opcionales ni pausas.
+- Sin adaptación dinámica.
+- Exactitud del 100 % en preguntas principales y rescates.
+- Validación online autoritativa para clasificar.
+- Las partidas offline solo generan récords personales.
+
+No uses el tiempo de una partida PvP como récord oficial de speedrun: sus interrupciones y duelos dificultan la comparación.
+
+---
+
+## 5. TABLERO Y REPRESENTACIÓN VISUAL
+
+### 5.1. Estructura
+
+- Posición inicial: `0`.
+- Casillas jugables: `1–30`.
+- Meta: `30`.
+- El desplazamiento excedente se limita a 30.
+- No se necesita una tirada exacta para ganar.
+- No hay dados: el movimiento depende de las respuestas.
+
+### 5.2. Recorrido
+
+Representa una serpiente visual o camino serpenteante.
+
+Distribución sugerida en móvil:
+
+- 5 columnas.
+- 6 filas.
+- Numeración alternada por fila.
+- Inicio abajo y meta arriba.
+
+El orden lógico de las casillas debe ser independiente de sus coordenadas visuales.
+
+### 5.3. Tipos de casilla
+
+| Tipo | Casillas | Identificación |
+|---|---|---|
+| Normal | Las restantes | Superficie neutra |
+| Boost | 6, 14, 22 | Verde, icono de impulso |
+| Trampa | 9, 18, 25 | Rojo o coral, icono de advertencia |
+| Duelo | 12, 27 | Morado, icono de enfrentamiento |
+| Meta | 30 | Dorado, bandera o trofeo |
+
+No uses únicamente color para distinguirlas. Agrega iconos y leyenda.
+
+### 5.4. Avatares
+
+- Fichas diferentes para cada participante.
+- Avatar, color y nombre identificables.
+- Si coinciden en una casilla, se muestran desplazados lateralmente.
+- Nunca se superponen hasta ocultarse.
+- Los nombres largos se truncan visualmente y conservan su nombre completo en una etiqueta accesible.
+- Las animaciones no modifican el estado lógico.
+
+Evita ilustraciones que imiten personajes o marcas de terceros.
+
+---
+
+## 6. REGLAS PRINCIPALES
+
+### 6.1. Ronda estándar
+
+Cada ronda contiene:
+
+1. Preparación y sincronización.
+2. Presentación de la pregunta.
+3. Ventana de respuesta.
+4. Cierre.
+5. Validación.
+6. Cálculo del movimiento.
+7. Resolución de casillas especiales.
+8. Comprobación de victoria.
+9. Retroalimentación.
+10. Preparación de la siguiente ronda.
+
+### 6.2. Tiempo de respuesta
+
+- Duración predeterminada: `10 000 ms`.
+- Ambos jugadores reciben la misma pregunta y formato.
+- La pregunta se publica al inicio de la ventana.
+- Cada participante puede enviar una única respuesta.
+- Una respuesta enviada queda bloqueada.
+- No se permite corregirla después.
+- El rival no ve la respuesta ni si fue correcta antes del cierre.
+
+En PvP, la ronda mantiene sus 10 segundos aunque ambos respondan antes, evitando que un participante afecte el tiempo disponible del otro.
+
+### 6.3. Movimiento base
+
+| Resultado | Movimiento |
+|---|---:|
+| Respuesta incorrecta | 0 |
+| Sin respuesta al vencer el tiempo | 0 |
+| Respuesta correcta en menos de 3 500 ms | +2 |
+| Respuesta correcta desde 3 500 ms hasta antes del cierre | +1 |
+
+Una respuesta recibida exactamente al vencimiento se considera tardía.
+
+Usa comparaciones explícitas:
+
+- Velocidad: `responseTimeMs < 3500`.
+- Vigencia: `receivedAt < deadlineAt`.
+
+### 6.4. Cómputo temporal
+
+En partidas online:
+
+- El servidor establece `startsAt` y `deadlineAt`.
+- El servidor registra cuándo recibe la respuesta.
+- El cliente no decide su propio tiempo oficial.
+- Los timestamps enviados por el cliente sirven solo para diagnóstico.
+- Usa una fuente monotónica para medir intervalos y timestamps UTC para persistencia.
+- Sincroniza el contador visual mediante estimación del desfase con el servidor.
+
+No aceptes respuestas tardías basándote en un reloj manipulable del cliente.
+
+Documenta que la latencia influye en el tiempo oficial. Muestra una advertencia de conectividad cuando la conexión sea inestable.
+
+---
+
+## 7. CASILLAS ESPECIALES Y ORDEN DE RESOLUCIÓN
+
+### 7.1. Regla de aterrizaje
+
+Una casilla especial se activa solo cuando el movimiento termina en ella.
+
+Pasar por encima no la activa.
+
+Una ronda sin movimiento no reactiva la casilla actual.
+
+### 7.2. Boost
+
+Si el jugador aterriza en `6`, `14` o `22`:
+
+- La respuesta principal debe ser correcta.
+- Debe haberse recibido en menos de `4 000 ms`.
+- Se agregan `+2` casillas al movimiento base.
+
+Ejemplos:
+
+- Responde en 3 200 ms: movimiento base +2; aterriza en boost; obtiene +2 adicionales.
+- Responde en 3 800 ms: movimiento base +1; aterriza en boost; obtiene +2 adicionales.
+- Responde en 4 000 ms: no obtiene impulso.
+
+La diferencia entre los umbrales de 3,5 y 4 segundos es intencional.
+
+### 7.3. Trampa
+
+Si aterriza en `9`, `18` o `25`, recibe una pregunta de rescate:
+
+- Nivel CEFR igual al de la partida.
+- Duración: 6 segundos.
+- Una única respuesta.
+- Si acierta, permanece en la casilla.
+- Si falla o no responde, retrocede 3 casillas.
+- El rescate no concede movimiento hacia adelante.
+
+Si ambos caen en una trampa durante la misma ronda, los rescates ocurren en paralelo.
+
+Quien no tenga rescate ve un estado breve de espera.
+
+### 7.4. Sin activaciones encadenadas
+
+Para evitar ciclos y reglas impredecibles:
+
+- El movimiento adicional de un boost no activa otra casilla especial.
+- El retroceso por trampa no activa otra casilla especial.
+- El movimiento otorgado por duelo no activa otra casilla especial.
+- Estos movimientos sí pueden alcanzar la meta.
+- El tablero informa visualmente que el efecto ya fue aplicado.
+
+### 7.5. Orden
+
+Resuelve en este orden:
+
+1. Calcular respuestas y movimientos base de ambos.
+2. Aplicar ambos movimientos de forma simultánea.
+3. Resolver boosts.
+4. Resolver rescates de trampas.
+5. Comprobar victoria.
+6. Si no hay ganador, comprobar condiciones de duelo.
+7. Resolver duelo si corresponde.
+8. Volver a comprobar victoria.
+
+No permitas que el orden de iteración de los jugadores determine quién gana.
+
+---
+
+## 8. DUELOS
+
+### 8.1. Condición de activación
+
+El duelo requiere:
+
+- Que ambos terminen en la misma casilla de duelo.
+- Que al menos uno haya aterrizado en ella durante la ronda actual.
+- Que el otro haya llegado en la ronda actual o en la inmediatamente anterior.
+- Que esa casilla todavía no haya activado un duelo en la partida.
+
+Ejemplo:
+
+- Jugador A llega a 12 en la ronda 5.
+- Jugador B llega a 12 en la ronda 6.
+- A sigue en 12.
+- Se activa el duelo.
+
+Si A ya salió de 12, no hay duelo.
+
+### 8.2. Desarrollo
+
+- Pregunta nueva, igual para ambos.
+- Mismo nivel CEFR.
+- Duración de 6 segundos.
+- No reutilices la pregunta principal de la ronda.
+- Gana quien envíe primero una respuesta correcta.
+- Una respuesta incorrecta bloquea a ese participante durante ese duelo.
+- No se revela el resultado hasta que termina el duelo.
+
+### 8.3. Recompensa
+
+- Ganador: +2 casillas.
+- Perdedor: permanece.
+- Ambos incorrectos o sin respuesta: nadie avanza.
+- Ambos correctos con diferencia de hasta 100 ms: empate; ambos reciben +1.
+
+Cada casilla de duelo puede activarse una sola vez por partida.
+
+Registra qué casillas ya fueron utilizadas.
+
+---
+
+## 9. VICTORIA, EMPATES Y LÍMITES
+
+### 9.1. Victoria normal
+
+Gana quien alcanza la casilla 30 al finalizar la resolución correspondiente.
+
+### 9.2. Llegada simultánea
+
+Si ambos alcanzan la meta en la misma ronda:
+
+1. Compara la cantidad acumulada de respuestas principales correctas.
+2. Si empatan, compara el tiempo acumulado de esas respuestas correctas.
+3. Si la diferencia temporal acumulada es de hasta 100 ms, inicia un desempate.
+
+No uses la velocidad de animación para decidir.
+
+### 9.3. Desempate
+
+- Preguntas simultáneas de 6 segundos.
+- Misma regla de respuesta única.
+- Gana quien acierte si el otro falla.
+- Si ambos aciertan, gana el más rápido cuando la diferencia sea superior a 100 ms.
+- Máximo de tres preguntas.
+- Si persiste el empate, registra empate real.
+
+### 9.4. Partidas estancadas
+
+- Máximo: 60 rondas principales.
+- Si nadie llegó a la meta, compara posición.
+- Si empatan en posición, aplica los criterios anteriores.
+- Una finalización por límite no es válida para speedrun.
+
+---
+
+## 10. MOTOR EDUCATIVO CEFR
+
+### 10.1. Separación de conceptos
+
+El nivel CEFR determina el contenido.
+
+La dificultad del bot determina su comportamiento.
+
+No asumas que elegir contenido C2 obliga a jugar contra un bot difícil.
+
+### 10.2. A1
+
+Contenido:
+
+- Objetos comunes.
+- Familia.
+- Colores.
+- Números.
+- Comida.
+- Animales.
+- Verbos frecuentes.
+- Presente simple básico.
+
+Formatos:
+
+- Selección entre cuatro opciones.
+- Imagen con opciones cuando exista un recurso válido.
+- Letras desordenadas.
+
+### 10.3. A2
+
+Contenido:
+
+- Rutinas.
+- Transporte.
+- Compras.
+- Descripciones.
+- Pasado simple.
+- Comparativos.
+- Expresiones frecuentes.
+
+Formatos:
+
+- Selección múltiple.
+- Completar frases.
+- Letras desordenadas.
+
+### 10.4. B1
+
+Contenido:
+
+- Situaciones cotidianas ampliadas.
+- Phrasal verbs frecuentes.
+- Viajes y trabajo.
+- Condicionales básicos.
+- Expresiones en contexto.
+
+Formatos:
+
+- Texto corto.
+- Completar expresiones.
+- Selección contextual.
+
+### 10.5. B2
+
+Contenido:
+
+- Colocaciones.
+- Phrasal verbs de mayor dificultad.
+- Matices de significado.
+- Transformaciones gramaticales breves.
+- Contextos académicos y profesionales.
+
+### 10.6. C1
+
+Contenido:
+
+- Sinónimos precisos.
+- Registro formal e informal.
+- Expresiones idiomáticas.
+- Colocaciones avanzadas.
+- Elección léxica contextual.
+
+### 10.7. C2
+
+Contenido:
+
+- Matices semánticos finos.
+- Expresiones avanzadas en contexto.
+- Registro y precisión.
+- Reformulación breve.
+- Vocabulario de alta complejidad.
+
+No confundas palabras raras con contenido automáticamente C2.
+
+### 10.8. Reglas editoriales
+
+Cada pregunta debe:
+
+- Tener una respuesta justificable y suficientemente inequívoca.
+- Incluir contexto cuando puedan existir varios sinónimos.
+- Tener distractores plausibles.
+- Evitar pistas gramaticalmente incorrectas.
+- Mantener extensión legible en móvil.
+- Explicar brevemente la solución.
+- Registrar variantes válidas.
+- Incluir estado de revisión.
+
+La clasificación CEFR del contenido inicial es una propuesta editorial y debe quedar marcada como pendiente de revisión pedagógica.
+
+Corrige errores del ejemplo original:
+
+- `DEVASTATE` tiene 9 letras.
+- `PUT OFF` tiene patrón `3,3`.
+- No reutilices la frase incorrecta “Large animal live in a farm”.
+
+---
+
+## 11. FORMATOS DE RESPUESTA Y VALIDACIÓN
+
+Implementa tipos explícitos:
+
+- `multiple_choice`
+- `letter_scramble`
+- `text_input`
+- `gap_fill`
+
+### Selección múltiple
+
+- Cuatro opciones.
+- Una sola respuesta válida.
+- Orden estable durante la pregunta.
+- Envío por identificador de opción.
+- Nunca por un índice que pueda cambiar entre clientes.
+
+### Letras desordenadas
+
+- Letras repetidas correctamente representadas.
+- Botón para borrar.
+- Botón para reiniciar.
+- Soporte de teclado.
+- El envío sigue siendo único.
+- El patrón de espacios debe estar claro en expresiones de varias palabras.
+
+### Texto libre
+
+Normalización predeterminada:
+
+1. Unicode normalizado.
+2. Eliminación de espacios al inicio y al final.
+3. Reducción de espacios repetidos.
+4. Comparación sin distinguir mayúsculas.
+5. Normalización de apóstrofos tipográficos.
+
+No elimines automáticamente guiones, puntuación o terminaciones cuando eso cambie lo que se está evaluando.
+
+### Variantes
+
+- Acepta variantes británicas y estadounidenses solo si están declaradas.
+- Acepta contracciones solo si están declaradas.
+- No uses similitud difusa para conceder puntos en ranked.
+- Una falta de ortografía puede producir feedback de “casi”, pero sigue siendo incorrecta.
+- No uses un LLM para decidir respuestas durante una partida competitiva.
+
+### Autocompletado
+
+En ranked:
+
+- No muestres sugerencias que revelen la solución.
+- Desactiva autocorrección y sugerencias del componente cuando sea posible.
+- No afirmes que esto impide herramientas externas.
+
+En práctica puede existir ayuda explícita, pero marca la sesión como asistida.
+
+---
+
+## 12. ESQUEMA DE PREGUNTAS
+
+Define tipos y validación de esquema para:
+
+```ts
+type CefrLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
+
+type QuestionType =
+  | "multiple_choice"
+  | "letter_scramble"
+  | "text_input"
+  | "gap_fill";
+
+interface QuestionDefinition {
+  id: string;
+  version: number;
+  level: CefrLevel;
+  type: QuestionType;
+  skill: "vocabulary" | "grammar" | "collocation" | "idiom";
+  topic: string;
+  clueEn: string;
+  instructionEs?: string;
+  answer: string;
+  acceptedAnswers: string[];
+  letterPattern: number[];
+  options?: Array<{
+    id: string;
+    text: string;
+  }>;
+  correctOptionId?: string;
+  explanationEn: string;
+  explanationEs: string;
+  assetId?: string;
+  reviewStatus: "draft" | "reviewed";
+}
+```
+
+Reglas:
+
+- `letterPattern` cuenta letras por palabra, excluyendo espacios.
+- Valida el patrón contra la respuesta.
+- Las opciones no pueden duplicarse después de normalizarlas.
+- La opción correcta debe existir.
+- Los identificadores deben ser únicos.
+- Los recursos visuales son opcionales.
+
+El cliente recibe un DTO público que excluye:
+
+- `answer`
+- `acceptedAnswers`
+- `correctOptionId`
+- Explicaciones antes del cierre
+
+No envíes respuestas escondidas en HTML, atributos, bundles de ranked o eventos WebSocket.
+
+### Contenido inicial
+
+Entrega:
+
+- Al menos 5 preguntas por nivel.
+- Total mínimo: 30.
+- Fixtures adicionales para probar rescates y duelos.
+- Validador del banco de contenido.
+
+Este banco es demostrativo. No habilites ranked público de producción con solo cinco preguntas por nivel: implementa una comprobación de disponibilidad y un umbral configurable de contenido revisado.
+
+---
+
+## 13. COMPORTAMIENTO DEL BOT
+
+El bot simula rendimiento, sin necesidad de consultar un modelo generativo.
+
+| Perfil | Exactitud base | Tiempo medio objetivo |
+|---|---:|---:|
+| Fácil | 70 % | 6,5 s |
+| Medio | 85 % | 4,5 s |
+| Difícil | 95 % | 2,5 s |
+
+### Reglas
+
+- Retraso mínimo: 1,8 segundos.
+- Tiempos variables mediante una distribución acotada.
+- Respuestas correctas, incorrectas y timeouts.
+- No responder siempre con el mismo retraso.
+- No cambiar su respuesta tras observar al humano.
+- No leer la respuesta del jugador para decidir si gana.
+- Mantener comportamiento equivalente en rescates y duelos, ajustado a sus ventanas de tiempo.
+
+Programa su decisión al comienzo de cada pregunta.
+
+### Asistencia adaptativa
+
+Solo en práctica y con opción visible:
+
+- Si el humano está más de cinco casillas detrás, reduce la exactitud base del bot en 20 puntos porcentuales.
+- Ejemplo: 85 % pasa a 65 %.
+- Aplica el ajuste desde la siguiente pregunta.
+- Restablece el valor cuando la diferencia vuelve a cinco o menos.
+- Nunca lo uses en ranked o speedrun.
+
+Incluye una semilla controlable para pruebas reproducibles.
+
+---
+
+## 14. EXPERIENCIA DE USUARIO
+
+### 14.1. Pantalla inicial
+
+Mostrar:
+
+- Nombre del juego.
+- Descripción breve.
+- Botón “Jugar”.
+- Botón “Cómo jugar”.
+- Selector de nivel.
+- Acceso a estadísticas y récords.
+
+### 14.2. Sala de espera
+
+Mostrar:
+
+- Código de sala y enlace copiable.
+- Participantes.
+- Nivel.
+- Modalidad.
+- Estado “Listo”.
+- Conexión de cada jugador.
+- Botón para salir.
+
+La partida comienza cuando ambos están listos.
+
+### 14.3. HUD
+
+Mostrar:
+
+- Nivel CEFR.
+- Número de ronda.
+- Tiempo total.
+- Temporizador de pregunta.
+- Posición de cada participante.
+- Estado de conexión.
+- Acceso a sonido y accesibilidad.
+
+Usa `MM:SS` durante la partida y milisegundos en resultados oficiales. Evita un contador de milisegundos que parpadee constantemente en móvil.
+
+### 14.4. Panel de pregunta
+
+Debe incluir:
+
+- Tipo de reto.
+- Pista.
+- Patrón de letras cuando corresponda.
+- Input u opciones.
+- Botón de envío.
+- Confirmación “Respuesta enviada”.
+- Contador visual y numérico.
+
+La barra cambia de verde a amarillo y rojo, acompañada siempre de texto o números.
+
+### 14.5. Layout estable
+
+- Tarjetas y botones con dimensiones consistentes.
+- Reserva espacio para pistas de varias líneas.
+- Evita saltos de layout al aparecer resultados.
+- El tablero se adapta sin desplazamiento horizontal.
+- El teclado virtual no debe ocultar la respuesta ni el envío.
+- No fuerces que el panel inferior ocupe exactamente 40 % si reduce la usabilidad.
+
+Verifica anchuras de 320, 360, 390, 768 y 1440 px.
+
+### 14.6. Feedback
+
+Después de la resolución:
+
+- Respuesta correcta.
+- Respuesta del usuario.
+- Explicación breve.
+- Movimiento obtenido.
+- Razón del bonus o penalización.
+
+Duración orientativa: 2,5 segundos, sincronizada en PvP.
+
+Permite revisar todo con calma al terminar.
+
+### 14.7. Accesibilidad
+
+- Navegación por teclado.
+- Foco visible.
+- Etiquetas para lectores de pantalla.
+- Objetivos táctiles de al menos 44 × 44 px.
+- Contraste suficiente.
+- Soporte de `prefers-reduced-motion`.
+- Sonido desactivable.
+- Sin flashes.
+- Anuncios accesibles solo para eventos relevantes.
+
+La práctica puede ofrecer tiempo ampliado, separado de los récords estándar.
+
+---
+
+## 15. ARQUITECTURA Y ESTADO
+
+Si existe stack previo, úsalo.
+
+Para un proyecto nuevo, propuesta predeterminada:
+
+- React y TypeScript.
+- Vite.
+- Tailwind o sistema de estilos equivalente.
+- SVG para el tablero.
+- Node.js y TypeScript.
+- Socket.IO.
+- PostgreSQL.
+- Validación de contratos compartidos.
+
+No incorpores un segundo backend si el repositorio ya tiene una API adecuada.
+
+### Separación de responsabilidades
+
+1. Motor de reglas puro.
+2. Servicio de partidas.
+3. Transporte en tiempo real.
+4. Repositorios de persistencia.
+5. Motor de contenido.
+6. Simulador del bot.
+7. Interfaz.
+8. Proyección pública del estado.
+
+### Estados explícitos
+
+Incluye al menos:
+
+```text
+LOBBY
+COUNTDOWN
+QUESTION_ACTIVE
+ROUND_RESOLUTION
+RESCUE_ACTIVE
+DUEL_ACTIVE
+FEEDBACK
+TIEBREAK_ACTIVE
+FINISHED
+ABORTED
+```
+
+No modeles el flujo mediante booleanos independientes que permitan estados incompatibles.
+
+Cada transición debe indicar:
+
+- Estado de origen.
+- Evento permitido.
+- Condiciones.
+- Estado de destino.
+- Efectos.
+- Deadline cuando aplique.
+
+### Estado autoritativo
+
+El servidor controla:
+
+- Preguntas.
+- Deadlines.
+- Respuestas recibidas.
+- Validación.
+- Posiciones.
+- Efectos especiales.
+- Bot online.
+- Victoria.
+- Rating.
+- Ranking.
+
+El cliente representa ese estado y envía intenciones.
+
+---
+
+## 16. COMUNICACIÓN EN TIEMPO REAL
+
+Eventos sugeridos:
+
+### Cliente a servidor
+
+- `room:create`
+- `room:join`
+- `player:ready`
+- `answer:submit`
+- `match:resume`
+- `match:leave`
+
+### Servidor a cliente
+
+- `room:snapshot`
+- `match:started`
+- `question:opened`
+- `answer:ack`
+- `round:resolved`
+- `rescue:opened`
+- `duel:opened`
+- `feedback:shown`
+- `match:finished`
+- `connection:status`
+- `operation:error`
+
+Cada comando debe contener lo necesario:
+
+- Identificador de solicitud.
+- Partida.
+- Ronda.
+- Pregunta.
+- Payload de respuesta.
+
+La identidad del jugador se obtiene de su sesión, no de un `playerId` confiado al cliente.
+
+### Requisitos
+
+- Idempotencia ante reintentos.
+- Primera respuesta válida aceptada una sola vez.
+- Rechazo de rondas antiguas.
+- Rechazo de preguntas ajenas.
+- Número de revisión del estado.
+- Snapshot completo para reconexión.
+- Ack sin revelar corrección antes del cierre.
+- Errores estructurados y legibles.
+
+---
+
+## 17. DESCONEXIÓN Y RECONEXIÓN
+
+En PvP:
+
+- No pauses el reloj si un jugador se desconecta.
+- La pregunta activa continúa.
+- Si no responde, cuenta como timeout.
+- Conserva su asiento durante 30 segundos.
+- Si vuelve, recibe un snapshot actualizado.
+- No vuelvas a abrir preguntas vencidas.
+- Si no regresa y el rival sigue conectado, pierde por abandono.
+
+Si ambos permanecen desconectados más de 30 segundos:
+
+- Finaliza como abortada.
+- No concede victoria automática.
+- No modifica rating.
+
+Una caída del servidor no debe provocar derrotas artificiales.
+
+Si no puedes recuperar de forma segura el estado tras reinicio, aborta la partida y registra el motivo.
+
+No permitas dos conexiones activas del mismo jugador actuando simultáneamente en la misma partida; define sustitución controlada de conexión.
+
+---
+
+## 18. PERSISTENCIA Y ESTADÍSTICAS
+
+Modela al menos:
+
+- Usuarios.
+- Salas.
+- Partidas.
+- Participantes.
+- Rondas.
+- Intentos de respuesta.
+- Preguntas y versiones.
+- Eventos especiales.
+- Estadísticas.
+- Récords.
+- Rating por nivel.
+
+Guarda:
+
+- Modalidad.
+- Nivel.
+- Versión de reglas.
+- Versión de contenido.
+- Inicio y fin.
+- Ganador o empate.
+- Motivo de finalización.
+- Posiciones.
+- Respuestas.
+- Tiempos.
+- Asistencia utilizada.
+- Elegibilidad para ranking.
+
+### Métricas
+
+Diferencia:
+
+- Victorias.
+- Derrotas.
+- Empates.
+- Abandonos.
+- Exactitud de respuestas principales.
+- Exactitud de rescates.
+- Exactitud de duelos.
+- Tiempo medio de respuestas correctas.
+- Mejor racha.
+- Récord de speedrun.
+
+Para exactitud de rondas principales, incluye los timeouts como intentos fallidos de preguntas abiertas mientras el participante estaba activo.
+
+No mezcles automáticamente estadísticas de bot, casual y ranked.
+
+---
+
+## 19. RANKINGS Y RATING
+
+### Speedrun
+
+Separar por:
+
+- Nivel CEFR.
+- Versión de reglas.
+- Formato de respuesta.
+- Semilla o conjunto de desafío.
+- Configuración temporal.
+
+Para una clasificación comparable, implementa desafíos con semilla y versión de contenido fija.
+
+El tiempo oficial comprende desde el inicio de la primera pregunta hasta la resolución que alcanza la meta, incluyendo ventanas y fases obligatorias. Excluye solo la cuenta regresiva inicial.
+
+Documenta esta convención.
+
+Una partida con error, timeout, rescate fallido, pausa o ayuda no clasifica al ranking perfecto.
+
+### Ranked PvP
+
+Implementa un rating por nivel con fórmula documentada y configurable.
+
+Si usas Elo:
+
+- Rating inicial: 1000.
+- Factor K inicial: 32.
+- Empate: resultado 0,5.
+- Abandono: derrota.
+- Partida abortada: sin cambio.
+
+Persistir el resultado y actualizar rating una única vez, mediante transacción o mecanismo equivalente.
+
+---
+
+## 20. SEGURIDAD Y ROBUSTEZ
+
+Implementa:
+
+- Validación de entradas.
+- Límite de longitud de respuestas.
+- Rate limiting.
+- Autorización para acceder a salas.
+- Códigos privados no secuenciales y con suficiente entropía.
+- Escape seguro de nombres y texto.
+- Secretos fuera del frontend.
+- Rechazo de movimientos enviados por el cliente.
+- Registro de errores sin tokens ni credenciales.
+- Restricción de orígenes del transporte cuando corresponda.
+- Operaciones de cierre idempotentes.
+
+No afirmes que el juego impide toda trampa externa. Garantiza que el cliente no pueda modificar legítimamente posiciones, relojes o resultados del servidor.
+
+Para escalar a varios procesos, documenta o implementa propiedad única de la partida, coordinación y transporte compartido. No asumas que un adaptador de WebSocket resuelve por sí solo las carreras del estado.
+
+---
+
+## 21. PWA Y OFFLINE
+
+Implementa:
+
+- Manifest.
+- Iconos.
+- Instalación cuando el navegador la permita.
+- Caché del shell.
+- Banco de práctica descargable y versionado.
+- Indicador de conexión.
+- Recuperación al volver a estar online.
+
+No almacenes respuestas HTTP autenticadas ni eventos competitivos indiscriminadamente en el service worker.
+
+El banco offline de práctica está disponible para el usuario; no debe reutilizarse como mecanismo secreto de ranked.
+
+No actives una nueva versión del service worker de forma que interrumpa una partida.
+
+---
+
+## 22. PRUEBAS OBLIGATORIAS
+
+### Motor de reglas
+
+Verifica:
+
+1. Respuesta correcta normal: +1.
+2. Respuesta correcta rápida: +2.
+3. Exactamente 3 500 ms: +1.
+4. Respuesta recibida al deadline: rechazada.
+5. Error y timeout: 0.
+6. Boost antes de 4 000 ms.
+7. Boost exactamente a 4 000 ms: no se activa.
+8. Pasar sobre una especial no la activa.
+9. Permanecer quieto no reactiva una especial.
+10. Rescate correcto e incorrecto.
+11. Efectos sin cadenas.
+12. Duelo en la misma ronda.
+13. Duelo con llegada en la ronda anterior.
+14. Ausencia de duelo si el otro ya salió.
+15. Casilla de duelo usada una sola vez.
+16. Empate temporal de duelo.
+17. Llegada simultánea.
+18. Límite de rondas.
+19. Movimiento limitado a 30.
+20. Resultado independiente del orden de los jugadores.
+
+### Integración
+
+- Dos clientes reciben la misma pregunta.
+- Envío duplicado no duplica movimiento.
+- Una segunda respuesta no reemplaza la primera.
+- Reconexión devuelve el estado correcto.
+- Usuario ajeno no entra en partida privada.
+- Respuestas no aparecen en el DTO público.
+- Cierre repetido no duplica estadísticas o rating.
+- Reinicio o caída no produce una victoria inventada.
+
+### E2E
+
+- Partida completa contra bot.
+- Partida completa entre dos contextos de navegador.
+- Sala privada.
+- Desconexión y reconexión.
+- Resultados y revisión de errores.
+- Uso móvil con teclado.
+- Navegación básica por teclado.
+
+Usa relojes falsos o controlados para pruebas temporales. Evita pruebas lentas basadas únicamente en esperas reales.
+
+Para el bot, verifica límites e invariantes con semilla; evita tests probabilísticos inestables.
+
+---
+
+## 23. CRITERIOS DE ACEPTACIÓN
+
+El trabajo estará completo cuando:
+
+- La aplicación inicia con instrucciones reproducibles.
+- Existen datos iniciales y migraciones.
+- Se puede terminar una partida contra bot.
+- Dos usuarios pueden jugar realmente en tiempo real.
+- El tablero refleja las posiciones oficiales.
+- Todas las casillas especiales funcionan.
+- El duelo respeta la ventana definida.
+- No existen saltos de layout importantes.
+- La experiencia es usable desde 320 px.
+- El teclado móvil no bloquea el envío.
+- Los errores generan explicaciones educativas.
+- La reconexión conserva el estado.
+- Las respuestas secretas no se filtran al cliente competitivo.
+- El resultado se persiste una sola vez.
+- Estadísticas y rankings aplican sus reglas.
+- La práctica offline funciona.
+- Las pruebas principales pasan.
+- No quedan botones centrales sin comportamiento.
+- No se presentan mocks como integraciones reales.
+
+Si algún requisito depende de infraestructura externa no disponible, implementa la configuración y el adaptador, verifica localmente lo posible y declara exactamente qué no pudo comprobarse.
+
+---
+
+## 24. ENTREGABLES
+
+Entrega dentro del proyecto:
+
+1. Código frontend.
+2. Código backend.
+3. Motor de reglas independiente.
+4. Contratos y validadores.
+5. Banco JSON mínimo de 30 preguntas.
+6. Fixtures de pruebas.
+7. Migraciones.
+8. Configuración de entorno de ejemplo sin secretos.
+9. Scripts de desarrollo, build, lint y pruebas.
+10. Pruebas unitarias, de integración y E2E.
+11. README de instalación.
+12. Documento breve de reglas.
+13. Documento de arquitectura y protocolo.
+14. Capturas de móvil y escritorio.
+15. Relación concreta de limitaciones verificadas.
+
+Si el repositorio usa contenedores, agrega lo necesario para ejecutar frontend, backend y base de datos localmente.
+
+No reemplaces el proyecto completo por una sola página demostrativa.
+
+---
+
+## 25. ORDEN DE IMPLEMENTACIÓN
+
+Trabaja en incrementos verificables:
+
+### Etapa 1
+
+- Inspección del repositorio.
+- Contratos.
+- Máquina de estados.
+- Motor de reglas.
+- Pruebas de movimiento, especiales y victoria.
+
+### Etapa 2
+
+- Banco educativo.
+- Validación.
+- Tablero.
+- Panel de preguntas.
+- Partida completa contra bot.
+
+### Etapa 3
+
+- Backend autoritativo.
+- Salas.
+- Rondas simultáneas.
+- Reconexión.
+- Prueba real con dos clientes.
+
+### Etapa 4
+
+- Persistencia.
+- Estadísticas.
+- Ranked.
+- Speedrun.
+- Resultados educativos.
+
+### Etapa 5
+
+- PWA.
+- Accesibilidad.
+- QA responsive.
+- Verificación final.
+- Documentación.
+
+Continúa entre etapas sin pedir aprobación por decisiones rutinarias ya cubiertas por esta especificación.
+
+No detengas el trabajo después de diseñar la interfaz si todavía faltan las reglas, el multijugador o la persistencia.
+
+---
+
+## 26. INFORME FINAL
+
+Al terminar, informa de forma breve y verificable:
+
+- Qué quedó implementado.
+- Cómo ejecutar el proyecto.
+- Cómo probar una partida con dos jugadores.
+- Qué pruebas ejecutaste y su resultado.
+- Qué limitaciones reales permanecen.
+
+No afirmes “100 % terminado” si existen requisitos obligatorios pendientes o funcionalidades que no pudiste comprobar.
+
+**Comienza inspeccionando el proyecto e implementa el juego completo conforme a esta especificación.**
