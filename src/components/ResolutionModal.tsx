@@ -1,7 +1,14 @@
-import React, { useEffect } from 'react';
-import { QuestionDefinition, Player } from '../types/game';
-import { CheckCircle2, XCircle, Zap, Skull, Swords, ArrowRight } from 'lucide-react';
-import { sound } from '../services/audio';
+import React, { useEffect } from "react";
+import { QuestionDefinition, Player } from "../types/game";
+import {
+  CheckCircle2,
+  XCircle,
+  Zap,
+  Skull,
+  Swords,
+  ArrowRight,
+} from "lucide-react";
+import { sound } from "../services/audio";
 
 interface ResolutionModalProps {
   question: QuestionDefinition;
@@ -16,7 +23,7 @@ export const ResolutionModal: React.FC<ResolutionModalProps> = ({
   player,
   opponent,
   onContinue,
-  isAutoDismiss = true
+  isAutoDismiss = true,
 }) => {
   const ans = player.currentAnswer;
   const isCorrect = Boolean(ans && ans.isCorrect);
@@ -30,8 +37,12 @@ export const ResolutionModal: React.FC<ResolutionModalProps> = ({
   }, [isCorrect]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-sm bg-slate-900 border border-slate-700/80 rounded-2xl p-5 shadow-2xl space-y-4">
+    <div
+      className="resolution-card animate-fadeIn"
+      role="status"
+      aria-live="polite"
+    >
+      <div className="resolution-content space-y-4">
         {/* Result Header */}
         <div className="flex items-center gap-3">
           {isCorrect ? (
@@ -44,54 +55,63 @@ export const ResolutionModal: React.FC<ResolutionModalProps> = ({
             </div>
           )}
           <div>
-            <h3 className="text-base font-bold text-slate-100">
-              {isCorrect ? '¡Respuesta Correcta!' : 'Respuesta Incorrecta'}
+            <h3 className="text-base font-bold game-text">
+              {isCorrect ? "¡Respuesta Correcta!" : "Respuesta Incorrecta"}
             </h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs game-muted">
               {isCorrect
                 ? ans && ans.responseTimeMs < 3500
                   ? `Rápido: +2 casillas (${(ans.responseTimeMs / 1000).toFixed(1)}s)`
                   : `+1 casilla (${((ans?.responseTimeMs || 0) / 1000).toFixed(1)}s)`
-                : 'Sin movimiento'}
+                : "Sin movimiento"}
             </p>
           </div>
         </div>
 
         {/* Answers comparison */}
-        <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3 space-y-2 text-xs">
+        <div className="game-page border game-border rounded-xl p-3 space-y-2 text-xs">
           <div>
-            <span className="text-slate-500 block mb-0.5">Solución oficial:</span>
-            <span className="font-bold text-emerald-400 text-sm">{question.answer}</span>
+            <span className="game-muted block mb-0.5">Solución oficial:</span>
+            <span className="font-bold text-emerald-400 text-sm">
+              {question.answer}
+            </span>
           </div>
 
           {!isCorrect && ans?.rawAnswer && (
             <div>
-              <span className="text-slate-500 block mb-0.5">Tu respuesta:</span>
-              <span className="font-medium text-rose-400 line-through">{ans.rawAnswer}</span>
+              <span className="game-muted block mb-0.5">Tu respuesta:</span>
+              <span className="font-medium text-rose-400 line-through">
+                {ans.rawAnswer}
+              </span>
             </div>
           )}
 
           {/* Educational Explanations */}
-          <div className="pt-2 border-t border-slate-800 text-slate-300 space-y-1">
-            <p className="font-medium leading-relaxed">{question.explanationEn}</p>
+          <div className="pt-2 border-t game-border game-muted space-y-1">
+            <p className="font-medium leading-relaxed">
+              {question.explanationEn}
+            </p>
             {question.explanationEs && (
-              <p className="text-[11px] text-slate-400 italic">{question.explanationEs}</p>
+              <p className="text-[11px] game-muted italic">
+                {question.explanationEs}
+              </p>
             )}
           </div>
         </div>
 
         {/* Movement and Opponent snapshot */}
-        <div className="flex items-center justify-between text-xs bg-slate-800/60 px-3 py-2 rounded-xl border border-slate-700/50">
+        <div className="flex items-center justify-between text-xs game-soft px-3 py-2 rounded-xl border game-border">
           <div className="flex items-center gap-1.5">
-            <span className="text-slate-400">Posición actual:</span>
+            <span className="game-muted">Posición actual:</span>
             <span className="font-bold text-indigo-400 text-sm">
               Casilla {player.position}
             </span>
           </div>
 
           {opponent && (
-            <div className="text-slate-400 text-[11px]">
-              {opponent.name}: <strong className="text-slate-200">Casilla {opponent.position}</strong>
+            <div className="game-muted text-[11px]">
+              {opponent.name}:{" "}
+              <strong className="game-text">Casilla {opponent.position}</strong>
             </div>
           )}
         </div>
@@ -99,7 +119,7 @@ export const ResolutionModal: React.FC<ResolutionModalProps> = ({
         {!isAutoDismiss && onContinue && (
           <button
             onClick={onContinue}
-            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md"
+            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 game-text rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md"
           >
             <span>Siguiente Ronda</span>
             <ArrowRight className="w-4 h-4" />
