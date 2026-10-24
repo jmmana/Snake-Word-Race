@@ -1,10 +1,7 @@
 export type CefrLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
 
 export type QuestionType =
-  | "multiple_choice"
-  | "letter_scramble"
-  | "text_input"
-  | "gap_fill";
+  "multiple_choice" | "letter_scramble" | "text_input" | "gap_fill";
 
 export type QuestionSkill = "vocabulary" | "grammar" | "collocation" | "idiom";
 
@@ -50,6 +47,7 @@ export interface PublicQuestionDTO {
     text: string;
   }>;
   assetId?: string;
+  letterBank?: string[];
 }
 
 export type CellType = "normal" | "boost" | "trap" | "duel" | "meta";
@@ -120,7 +118,13 @@ export interface PlayerHistoryEntry {
   isCorrect: boolean;
   responseTimeMs: number;
   movementAwarded: number;
-  specialEvent?: "boost" | "trap_rescue_success" | "trap_rescue_fail" | "duel_win" | "duel_loss" | "duel_tie";
+  specialEvent?:
+    | "boost"
+    | "trap_rescue_success"
+    | "trap_rescue_fail"
+    | "duel_win"
+    | "duel_loss"
+    | "duel_tie";
 }
 
 export interface GameRoom {
@@ -146,7 +150,8 @@ export interface GameRoom {
   roundDeadlineAt: number;
   usedDuelCells: number[];
   winnerId?: string | null;
-  finishReason?: "meta_reached" | "round_limit" | "abandonment" | "speedrun_complete";
+  finishReason?:
+    "meta_reached" | "round_limit" | "abandonment" | "speedrun_complete";
   history: PlayerHistoryEntry[];
   speedrunStartTime?: number;
   speedrunFinishTime?: number;

@@ -1,4 +1,4 @@
-# Snake Word Race — Carrera Educativa de Inglés
+# AqueLingua · Snake Word Race
 
 Juego educativo full-stack de aprendizaje del inglés en tablero serpenteante con modos individual, contra bot, speedrun y multijugador en tiempo real.
 
@@ -52,7 +52,7 @@ npm install
 # Ejecutar servidor y cliente (Vite + WebSockets en puerto 3000)
 npm run dev
 
-# Ejecutar suite de 20 pruebas obligatorias del motor de reglas
+# Ejecutar pruebas del motor y regresión del banco de letras
 npm run test
 
 # Compilar para producción
@@ -60,7 +60,28 @@ npm run build
 ```
 
 ### Cómo probar una partida con dos jugadores en tiempo real:
+
 1. Abre dos pestañas o ventanas distintas del navegador en `http://localhost:3000`.
 2. En la Pestaña 1, elige "Multijugador Casual" y haz clic en "Crear Sala Multijugador". Copia el código de 6 caracteres generado (por ejemplo, `AB12CD`).
 3. En la Pestaña 2, elige "Multijugador Casual", ingresa el código en la casilla y haz clic en "Unirse".
 4. Ambos jugadores pulsan "Listo" en la sala de espera y la carrera comenzará sincronizada automáticamente.
+
+## Rediseño Adventure
+
+Toda la interfaz comparte el estilo AqueLingua: menú claro con alternativa oscura mediante sol/luna, superficies marfil, acentos violeta y personajes 3D. Incluye inicio, configuración A1–C2, sala de espera, partida, preguntas, rescates, duelos, resultados, récords, estadísticas, ayuda y avisos PWA.
+
+El tablero ocupa el área principal con 30 casillas en un recorrido serpenteante, serpientes y escaleras ilustradas, fichas animadas y progreso de cada jugador. Las preguntas permanecen a la derecha en escritorio y aparecen primero en móvil. Las reglas y tiempos se conservan.
+
+Consulta `DESIGN.md` para componentes, arte y accesibilidad.
+
+### Validación de interfaz
+
+```bash
+npm run lint
+npm run test
+npm run build
+npx playwright install chromium
+npm run test:ui
+```
+
+Playwright inicia el servidor de producción en el puerto 3000. Comprueba navegación y ventanas, tema persistente, pantalla móvil, una respuesta real y movimiento de ficha, y una sala entre dos navegadores mediante WebSockets. Se puede utilizar un Chromium instalado definiendo `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`.

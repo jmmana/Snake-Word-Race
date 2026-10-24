@@ -1,166 +1,281 @@
-import React from 'react';
-import { Player } from '../types/game';
-import { BOOST_CELLS, TRAP_CELLS, DUEL_CELLS, META_CELL, getCellType } from '../game/rules';
-import { Zap, Skull, Swords, Trophy, Flag } from 'lucide-react';
-
-interface BoardProps {
+import React from "react";
+import { motion, useReducedMotion } from "motion/react";
+import { Player } from "../types/game";
+import { getCellType } from "../game/rules";
+import { Zap, Swords, Trophy, Flag, ShieldQuestion } from "lucide-react";
+export function boardPoint(cell: number) {
+  if (cell === 0) return { x: 110, y: 737 };
+  const step = cell - 1;
+  const row = Math.floor(step / 6);
+  const col = row % 2 === 0 ? step % 6 : 5 - (step % 6);
+  return { x: 100 + col * 160, y: 635 - row * 135 };
+}
+const cells = Array.from({ length: 30 }, (_, i) => i + 1);
+const road = cells
+  .map((n, i) => `${i ? "L" : "M"} ${boardPoint(n).x} ${boardPoint(n).y}`)
+  .join(" ");
+export const Board: React.FC<{
   players: Player[];
   activePlayerId?: string;
-}
-
-export const Board: React.FC<BoardProps> = ({ players, activePlayerId }) => {
-  // 5 columns x 6 rows = 30 cells
-  // Bottom row (row 5 in 0-index): 1 to 5 (left to right)
-  // Row 4: 10 to 6 (right to left)
-  // Row 3: 11 to 15 (left to right)
-  // Row 2: 20 to 16 (right to left)
-  // Row 1: 21 to 25 (left to right)
-  // Top row (row 0): 30 to 26 (right to left)
-
-  const rows = [
-    [30, 29, 28, 27, 26], // row 0: Finish at top left
-    [21, 22, 23, 24, 25], // row 1
-    [20, 19, 18, 17, 16], // row 2
-    [11, 12, 13, 14, 15], // row 3
-    [10, 9, 8, 7, 6],     // row 4
-    [1, 2, 3, 4, 5]       // row 5: Start at bottom left
-  ];
-
-  const getCellPlayers = (cellNumber: number) => {
-    return players.filter(p => p.position === cellNumber);
-  };
-
+}> = ({ players, activePlayerId }) => {
+  const reduce = useReducedMotion();
   return (
-    <div className="w-full max-w-md mx-auto select-none bg-slate-900/90 border border-slate-800 rounded-2xl p-3 shadow-2xl backdrop-blur-sm">
-      {/* Legend Header */}
-      <div className="flex items-center justify-between text-xs font-semibold px-2 pb-2 mb-2 border-b border-slate-800 text-slate-400">
-        <div className="flex items-center gap-1 text-emerald-400">
-          <Zap className="w-3.5 h-3.5" />
-          <span>Boost (6, 14, 22)</span>
+    <section
+      className="adventure-board"
+      aria-label="Tablero de Snake Word Race"
+    >
+      <header className="board-caption">
+        <div>
+          <span className="eyebrow">EL VALLE DE LAS PALABRAS</span>
+          <h2>Tu aventura hacia la meta</h2>
         </div>
-        <div className="flex items-center gap-1 text-rose-400">
-          <Skull className="w-3.5 h-3.5" />
-          <span>Trap (9, 18, 25)</span>
+        <span className="finish-badge">
+          <Trophy size={16} />
+          30 casillas
+        </span>
+      </header>
+      <div className="board-stage">
+        <svg viewBox="0 0 1000 780" aria-hidden="true" className="board-route">
+          <defs>
+            <linearGradient id="road" x1="0" y1="1" x2="1" y2="0">
+              <stop stopColor="#e6c992" />
+              <stop offset="1" stopColor="#f6deb0" />
+            </linearGradient>
+            <filter id="roadshadow">
+              <feDropShadow
+                dx="0"
+                dy="7"
+                stdDeviation="2"
+                floodColor="#947158"
+                floodOpacity=".23"
+              />
+            </filter>
+          </defs>
+          <path
+            d={road}
+            fill="none"
+            stroke="#b69b7440"
+            strokeWidth="100"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d={road}
+            fill="none"
+            stroke="url(#road)"
+            strokeWidth="83"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            filter="url(#roadshadow)"
+          />
+          <path
+            d={road}
+            fill="none"
+            stroke="#fff9d5"
+            strokeWidth="59"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d={road}
+            fill="none"
+            stroke="#dab978"
+            strokeWidth="3"
+            strokeDasharray="5 14"
+          />
+          {/* Illustrated snakes correspond to conditional -3 rescue penalties. */}
+          {[
+            [9, 6],
+            [25, 22],
+          ].map(([a, b]) => {
+            const s = boardPoint(a),
+              e = boardPoint(b);
+            const d = `M${s.x + 12} ${s.y + 25} C ${s.x + 130} ${s.y + 40}, ${e.x + 50} ${e.y - 100}, ${e.x - 8} ${e.y - 25}`;
+            return (
+              <g key={a}>
+                <path
+                  d={d}
+                  stroke="#a52d7040"
+                  strokeWidth="24"
+                  fill="none"
+                  strokeLinecap="round"
+                />
+                <path
+                  d={d}
+                  stroke="#e780aa"
+                  strokeWidth="17"
+                  fill="none"
+                  strokeLinecap="round"
+                />
+                <path
+                  d={d}
+                  stroke="#ffd1df"
+                  strokeWidth="3"
+                  strokeDasharray="4 17"
+                  fill="none"
+                />
+                <ellipse
+                  cx={s.x + 12}
+                  cy={s.y + 25}
+                  rx="18"
+                  ry="13"
+                  fill="#d56e9d"
+                />
+                <circle cx={s.x + 7} cy={s.y + 21} r="2.5" fill="#461d50" />
+                <circle cx={s.x + 17} cy={s.y + 21} r="2.5" fill="#461d50" />
+              </g>
+            );
+          })}
+          {[
+            [6, 8],
+            [14, 16],
+            [22, 24],
+          ].map(([a, b]) => {
+            const s = boardPoint(a),
+              e = boardPoint(b);
+            const dx = e.x - s.x,
+              dy = e.y - s.y,
+              len = Math.hypot(dx, dy),
+              nx = (-dy / len) * 8,
+              ny = (dx / len) * 8;
+            return (
+              <g key={a} stroke="#62b89e" strokeLinecap="round" opacity=".85">
+                <path
+                  d={`M${s.x + nx} ${s.y + ny} L${e.x + nx} ${e.y + ny} M${s.x - nx} ${s.y - ny} L${e.x - nx} ${e.y - ny}`}
+                  strokeWidth="7"
+                />
+                {[0.2, 0.4, 0.6, 0.8].map((t) => (
+                  <path
+                    key={t}
+                    d={`M${s.x + dx * t + nx} ${s.y + dy * t + ny} L${s.x + dx * t - nx} ${s.y + dy * t - ny}`}
+                    strokeWidth="5"
+                  />
+                ))}
+              </g>
+            );
+          })}
+        </svg>
+        {cells.map((n) => {
+          const pt = boardPoint(n),
+            type = getCellType(n);
+          const Icon =
+            type === "boost"
+              ? Zap
+              : type === "trap"
+                ? ShieldQuestion
+                : type === "duel"
+                  ? Swords
+                  : type === "meta"
+                    ? Trophy
+                    : null;
+          return (
+            <div
+              key={n}
+              className={"race-tile " + type}
+              style={{ left: pt.x / 10 + "%", top: pt.y / 7.8 + "%" }}
+              data-cell={n}
+              aria-label={`Casilla ${n}${type === "normal" ? "" : type === "boost" ? ", impulso de dos casillas" : type === "trap" ? ", rescate" : type === "duel" ? ", duelo" : ", meta"}`}
+            >
+              <span className="tile-number">{n}</span>
+              {Icon && <Icon aria-hidden="true" />}
+              <small>
+                {type === "boost"
+                  ? "+2"
+                  : type === "trap"
+                    ? "RESCATE"
+                    : type === "duel"
+                      ? "DUELO"
+                      : type === "meta"
+                        ? "META"
+                        : ""}
+              </small>
+            </div>
+          );
+        })}
+        <div className="start-label">
+          <Flag size={12} /> SALIDA
         </div>
-        <div className="flex items-center gap-1 text-purple-400">
-          <Swords className="w-3.5 h-3.5" />
-          <span>Duel (12, 27)</span>
-        </div>
-        <div className="flex items-center gap-1 text-amber-400">
-          <Trophy className="w-3.5 h-3.5" />
-          <span>Meta (30)</span>
-        </div>
-      </div>
-
-      {/* Grid Container */}
-      <div className="grid grid-rows-6 gap-2 relative">
-        {rows.map((row, rowIndex) => (
-          <div key={rowIndex} className="grid grid-cols-5 gap-2">
-            {row.map((cellNum) => {
-              const cellType = getCellType(cellNum);
-              const cellPlayers = getCellPlayers(cellNum);
-              const isBoost = cellType === 'boost';
-              const isTrap = cellType === 'trap';
-              const isDuel = cellType === 'duel';
-              const isMeta = cellType === 'meta';
-
-              let bgStyle = 'bg-slate-800/80 border-slate-700/80 text-slate-300';
-              if (isBoost) {
-                bgStyle = 'bg-emerald-950/60 border-emerald-500/60 text-emerald-300 shadow-emerald-950/50';
-              } else if (isTrap) {
-                bgStyle = 'bg-rose-950/60 border-rose-500/60 text-rose-300 shadow-rose-950/50';
-              } else if (isDuel) {
-                bgStyle = 'bg-purple-950/60 border-purple-500/60 text-purple-300 shadow-purple-950/50';
-              } else if (isMeta) {
-                bgStyle = 'bg-amber-950/70 border-amber-400 text-amber-300 shadow-amber-900/50 ring-1 ring-amber-400/50';
+        {players.map((p, i) => {
+          const pt = boardPoint(Math.max(0, Math.min(30, p.position)));
+          const peers = players.filter((o) => o.position === p.position);
+          const offset =
+            (peers.findIndex((o) => o.id === p.id) - (peers.length - 1) / 2) *
+            27;
+          return (
+            <motion.div
+              initial={false}
+              key={p.id}
+              className={
+                "race-pawn " + (p.id === activePlayerId ? "you" : "rival")
               }
-
-              return (
-                <div
-                  key={cellNum}
-                  className={`relative flex flex-col items-center justify-between aspect-square rounded-xl border p-1 transition-all duration-300 ${bgStyle}`}
-                >
-                  {/* Cell Number Header */}
-                  <div className="w-full flex items-center justify-between text-[11px] font-bold px-0.5">
-                    <span className="opacity-70">{cellNum}</span>
-                    {isBoost && <Zap className="w-3 h-3 text-emerald-400 animate-pulse" />}
-                    {isTrap && <Skull className="w-3 h-3 text-rose-400" />}
-                    {isDuel && <Swords className="w-3 h-3 text-purple-400" />}
-                    {isMeta && <Trophy className="w-3.5 h-3.5 text-amber-400 animate-bounce" />}
-                  </div>
-
-                  {/* Player Avatars Container */}
-                  <div className="flex-1 w-full flex items-center justify-center relative">
-                    {cellPlayers.length > 0 && (
-                      <div className="flex items-center justify-center -space-x-2">
-                        {cellPlayers.map((player, idx) => {
-                          const isSelf = player.id === activePlayerId;
-                          return (
-                            <div
-                              key={player.id}
-                              className={`relative z-${idx + 10} flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 shadow-lg transition-transform hover:scale-110 ${
-                                isSelf
-                                  ? 'border-cyan-300 bg-cyan-600 text-white shadow-cyan-500/50 ring-2 ring-cyan-400/50'
-                                  : 'border-fuchsia-300 bg-fuchsia-600 text-white shadow-fuchsia-500/50 ring-2 ring-fuchsia-400/50'
-                              }`}
-                              title={`${player.name} (Casilla ${cellNum})`}
-                            >
-                              <span className="text-[11px] font-black uppercase">
-                                {player.name.slice(0, 1)}
-                              </span>
-                              {/* Pulse ring for active player */}
-                              {isSelf && (
-                                <span className="absolute -inset-0.5 rounded-full bg-cyan-400 animate-ping opacity-30 pointer-events-none" />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Foot label */}
-                  <div className="text-[8px] font-medium uppercase tracking-tight text-center opacity-60 leading-none">
-                    {isBoost ? '+2' : isTrap ? 'Trampa' : isDuel ? 'Duelo' : isMeta ? 'Meta' : ''}
-                  </div>
-                </div>
-              );
-            })}
+              animate={{
+                left: `calc(${pt.x / 10}% + ${offset}px)`,
+                top: pt.y / 7.8 + "%",
+              }}
+              transition={{ duration: reduce ? 0 : 0.65, ease: "easeInOut" }}
+              data-player={p.id}
+              data-position={p.position}
+              role="img"
+              aria-label={`${p.name}, casilla ${p.position}`}
+            >
+              <span className="pawn-crown">{i === 0 ? "✦" : "●"}</span>
+              {p.id === activePlayerId || p.isBot ? (
+                <img
+                  src={p.isBot ? "/art/polyglot.webp" : "/art/warlock.webp"}
+                  alt=""
+                />
+              ) : (
+                <span className="pawn-face">
+                  {p.name.slice(0, 1).toUpperCase()}
+                </span>
+              )}
+              <b>
+                {p.id === activePlayerId
+                  ? "TÚ"
+                  : p.isBot
+                    ? "BOT"
+                    : p.name.slice(0, 8)}
+              </b>
+            </motion.div>
+          );
+        })}
+      </div>
+      <footer className="board-legend">
+        <span>
+          <Zap />
+          Impulso +2
+        </span>
+        <span>
+          <ShieldQuestion />
+          Rescate: fallar −3
+        </span>
+        <span>
+          <Swords />
+          Duelo +2
+        </span>
+        <span>
+          <Trophy />
+          Meta 30
+        </span>
+      </footer>
+      <div className="player-strip">
+        {players.map((p, i) => (
+          <div key={p.id} className={p.id === activePlayerId ? "self" : ""}>
+            <span className={"player-dot p" + i} />
+            <strong>{p.name}</strong>
+            <span>{p.position}/30</span>
+            <progress
+              value={p.position}
+              max={30}
+              aria-label={`Avance de ${p.name}`}
+            />
+            <small>
+              {p.stats.correctCount} aciertos · {p.stats.totalAnswers}{" "}
+              respuestas
+            </small>
           </div>
         ))}
       </div>
-
-      {/* Start Area (Position 0) */}
-      <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 font-bold text-slate-300 bg-slate-800 px-2 py-1 rounded-lg">
-            <Flag className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Inicio (0)</span>
-          </div>
-          {/* Players at start */}
-          <div className="flex items-center gap-1.5">
-            {getCellPlayers(0).map((player) => (
-              <span
-                key={player.id}
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  player.id === activePlayerId
-                    ? 'bg-cyan-950 text-cyan-300 border border-cyan-800'
-                    : 'bg-fuchsia-950 text-fuchsia-300 border border-fuchsia-800'
-                }`}
-              >
-                {player.name}
-              </span>
-            ))}
-            {getCellPlayers(0).length === 0 && (
-              <span className="text-slate-500 text-[11px]">En carrera</span>
-            )}
-          </div>
-        </div>
-
-        <div className="text-[11px] text-slate-400">
-          Meta: <strong className="text-amber-400">Casilla 30</strong>
-        </div>
-      </div>
-    </div>
+    </section>
   );
 };
