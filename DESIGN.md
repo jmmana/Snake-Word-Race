@@ -29,3 +29,9 @@ El service worker usa una nueva versión de caché y prioriza red para navegaci�
 ## Validación
 
 Pruebas del motor, comprobación TypeScript, compilación de producción y Playwright para escritorio, móvil, respuesta con avance y sala de dos jugadores. El aviso de tamaño del bundle sigue relacionado con el banco educativo incluido en el cliente; no impide compilar.
+
+## Ajuste de espacio de la partida
+
+El marcador de ambos jugadores se muestra sobre el reto en el panel derecho, con posición destacada, barras y aciertos. El tablero adapta su altura a la ventana de escritorio sin ocultar casillas; la ruta SVG se ajusta a la misma geometría que las fichas. En pantallas bajas, un reto largo puede desplazarse dentro del panel derecho sin mover todo el tablero. En móvil se mantiene el desplazamiento natural y el marcador aparece antes del reto.
+
+Las pruebas verifican que la página de partida no requiere desplazamiento vertical en 1440×900, 1366×768, 1920×1080 y 1024×768.

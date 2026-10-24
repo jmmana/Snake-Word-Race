@@ -1224,83 +1224,120 @@ export default function App() {
             <Board players={room.players} activePlayerId={playerId} />
 
             <aside className="race-challenge" aria-label="Reto de inglés">
-              {/* Question Panel */}
-              {room.publicActiveQuestion &&
-                ["QUESTION_ACTIVE", "TIEBREAK_ACTIVE"].includes(room.state) && (
-                  <QuestionPanel
-                    key={room.publicActiveQuestion?.id + room.state}
-                    question={room.publicActiveQuestion}
-                    deadlineAt={room.roundDeadlineAt}
-                    durationMs={STANDARD_QUESTION_DURATION_MS}
-                    onSubmitAnswer={handleAnswerSubmit}
-                    isLocked={isAnswerLocked}
-                    userAnswer={userSubmittedAnswer}
-                    isRanked={room.mode === "ranked"}
-                  />
+              <section
+                className="race-scoreboard"
+                aria-label="Marcador de la carrera"
+              >
+                <header>
+                  <span className="eyebrow">EN ESTA CARRERA</span>
+                  <strong>Así va la partida</strong>
+                </header>
+                <div className="player-strip">
+                  {room.players.map((p, i) => (
+                    <div key={p.id} className={p.id === playerId ? "self" : ""}>
+                      <span className={"player-dot p" + i} />
+                      <strong>
+                        {p.name}
+                        {p.id === playerId ? " · Tú" : ""}
+                      </strong>
+                      <span>
+                        <b>{p.position}</b>/30
+                      </span>
+                      <progress
+                        value={p.position}
+                        max={30}
+                        aria-label={`Avance de ${p.name}`}
+                      />
+                      <small>
+                        {p.stats.correctCount} aciertos · {p.stats.totalAnswers}{" "}
+                        respuestas
+                      </small>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <div className="race-question-area">
+                {/* Question Panel */}
+                {room.publicActiveQuestion &&
+                  ["QUESTION_ACTIVE", "TIEBREAK_ACTIVE"].includes(
+                    room.state,
+                  ) && (
+                    <QuestionPanel
+                      key={room.publicActiveQuestion?.id + room.state}
+                      question={room.publicActiveQuestion}
+                      deadlineAt={room.roundDeadlineAt}
+                      durationMs={STANDARD_QUESTION_DURATION_MS}
+                      onSubmitAnswer={handleAnswerSubmit}
+                      isLocked={isAnswerLocked}
+                      userAnswer={userSubmittedAnswer}
+                      isRanked={room.mode === "ranked"}
+                    />
+                  )}
+
+                {/* Trap Rescue Question Panel */}
+                {room.publicRescueQuestion &&
+                  room.state === "RESCUE_ACTIVE" && (
+                    <div className="border border-rose-500/50 rounded-2xl overflow-hidden shadow-2xl">
+                      <div className="bg-rose-950/80 px-4 py-2 text-rose-300 text-xs font-bold flex items-center justify-between">
+                        <span>¡PREGUNTA DE RESCATE (TRAMPA)!</span>
+                        <span>6 Segundos</span>
+                      </div>
+                      <QuestionPanel
+                        key={room.publicRescueQuestion.id}
+                        question={room.publicRescueQuestion}
+                        deadlineAt={room.roundDeadlineAt}
+                        durationMs={RESCUE_QUESTION_DURATION_MS}
+                        onSubmitAnswer={handleAnswerSubmit}
+                        isLocked={isAnswerLocked}
+                        userAnswer={userSubmittedAnswer}
+                        isRanked={room.mode === "ranked"}
+                      />
+                    </div>
+                  )}
+
+                {/* Duel Question Panel */}
+                {room.publicDuelQuestion && room.state === "DUEL_ACTIVE" && (
+                  <div className="border border-purple-500/50 rounded-2xl overflow-hidden shadow-2xl">
+                    <div className="bg-purple-950/80 px-4 py-2 text-purple-300 text-xs font-bold flex items-center justify-between">
+                      <span>¡DUELO DIRECTO! (EL MÁS RÁPIDO GANA +2)</span>
+                      <span>6 Segundos</span>
+                    </div>
+                    <QuestionPanel
+                      key={room.publicDuelQuestion.id}
+                      question={room.publicDuelQuestion}
+                      deadlineAt={room.roundDeadlineAt}
+                      durationMs={DUEL_QUESTION_DURATION_MS}
+                      onSubmitAnswer={handleAnswerSubmit}
+                      isLocked={isAnswerLocked}
+                      userAnswer={userSubmittedAnswer}
+                      isRanked={room.mode === "ranked"}
+                    />
+                  </div>
                 )}
 
-              {/* Trap Rescue Question Panel */}
-              {room.publicRescueQuestion && room.state === "RESCUE_ACTIVE" && (
-                <div className="border border-rose-500/50 rounded-2xl overflow-hidden shadow-2xl">
-                  <div className="bg-rose-950/80 px-4 py-2 text-rose-300 text-xs font-bold flex items-center justify-between">
-                    <span>¡PREGUNTA DE RESCATE (TRAMPA)!</span>
-                    <span>6 Segundos</span>
-                  </div>
-                  <QuestionPanel
-                    key={room.publicRescueQuestion.id}
-                    question={room.publicRescueQuestion}
-                    deadlineAt={room.roundDeadlineAt}
-                    durationMs={RESCUE_QUESTION_DURATION_MS}
-                    onSubmitAnswer={handleAnswerSubmit}
-                    isLocked={isAnswerLocked}
-                    userAnswer={userSubmittedAnswer}
-                    isRanked={room.mode === "ranked"}
+                {/* Synchronized Feedback Resolution Card */}
+                {room.state === "FEEDBACK" && room.activeQuestion && (
+                  <ResolutionModal
+                    question={room.activeQuestion}
+                    player={
+                      room.players.find((p) => p.id === playerId) ||
+                      room.players[0]
+                    }
+                    opponent={room.players.find((p) => p.id !== playerId)}
+                    isAutoDismiss={true}
                   />
-                </div>
-              )}
-
-              {/* Duel Question Panel */}
-              {room.publicDuelQuestion && room.state === "DUEL_ACTIVE" && (
-                <div className="border border-purple-500/50 rounded-2xl overflow-hidden shadow-2xl">
-                  <div className="bg-purple-950/80 px-4 py-2 text-purple-300 text-xs font-bold flex items-center justify-between">
-                    <span>¡DUELO DIRECTO! (EL MÁS RÁPIDO GANA +2)</span>
-                    <span>6 Segundos</span>
-                  </div>
-                  <QuestionPanel
-                    key={room.publicDuelQuestion.id}
-                    question={room.publicDuelQuestion}
-                    deadlineAt={room.roundDeadlineAt}
-                    durationMs={DUEL_QUESTION_DURATION_MS}
-                    onSubmitAnswer={handleAnswerSubmit}
-                    isLocked={isAnswerLocked}
-                    userAnswer={userSubmittedAnswer}
-                    isRanked={room.mode === "ranked"}
-                  />
-                </div>
-              )}
-
-              {/* Synchronized Feedback Resolution Card */}
-              {room.state === "FEEDBACK" && room.activeQuestion && (
-                <ResolutionModal
-                  question={room.activeQuestion}
-                  player={
-                    room.players.find((p) => p.id === playerId) ||
-                    room.players[0]
-                  }
-                  opponent={room.players.find((p) => p.id !== playerId)}
-                  isAutoDismiss={true}
-                />
-              )}
-              {["COUNTDOWN", "ROUND_RESOLUTION", "TIEBREAK_ACTIVE"].includes(
-                room.state,
-              ) &&
-                !room.publicActiveQuestion && (
-                  <section className="challenge-wait">
-                    <Sparkles />
-                    <h2>Prepara tu siguiente respuesta</h2>
-                    <p>La aventura continúa en un momento.</p>
-                  </section>
                 )}
+                {["COUNTDOWN", "ROUND_RESOLUTION", "TIEBREAK_ACTIVE"].includes(
+                  room.state,
+                ) &&
+                  !room.publicActiveQuestion && (
+                    <section className="challenge-wait">
+                      <Sparkles />
+                      <h2>Prepara tu siguiente respuesta</h2>
+                      <p>La aventura continúa en un momento.</p>
+                    </section>
+                  )}
+              </div>
             </aside>
           </div>
         )}
